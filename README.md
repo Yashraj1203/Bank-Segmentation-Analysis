@@ -1,75 +1,233 @@
-# 🏦 Bank Segmentation Analysis (SQL Project)
+# 🏦 Banking Customer Segmentation & Transaction Analytics
 
-This project simulates a real-world banking dataset and performs a series of SQL queries to extract valuable insights about customers, transactions, and geographic activity. It showcases my skills in SQL for data analysis, with a focus on financial data and customer segmentation.
+A MySQL case study that simulates retail banking data, engineers customer-level features, and segments customers by value, engagement, and product depth.
 
----
-## Developer / Creator
+## Business Problem
 
-Yashraj1203
+A retail bank wants to understand **who its customers are, how they use banking products, and which customer groups require different forms of attention**.
 
----
+This project answers four analytical questions:
 
-## Project Objective
+1. Which customers generate the highest transaction inflows and activity?
+2. Which customers/accounts are active, low-activity, or dormant?
+3. Which customers have single-product versus multi-product relationships?
+4. How do customer value and engagement vary across cities and transaction services?
 
-To analyze simulated banking data and uncover key insights that can help drive strategic decisions such as:
-- Identifying high-value customers
-- Understanding transaction behaviors
-- Measuring regional banking performance
-- Detecting dormant and underutilized accounts
+> **Important:** The dataset is simulated for analytical demonstration. Findings should not be interpreted as evidence about actual Nigerian banking customers or markets.
 
----
+## Analytical Architecture
 
-## Tools & Technologies
+```
+Simulated Banking Data
+        ↓
+Relational Data Model
+        ↓
+Data Quality Checks
+        ↓
+Customer-Level Feature Engineering
+        ↓
+Value / Engagement / Product Segmentation
+        ↓
+Customer & Transaction Analysis
+        ↓
+Business Implications
+```
 
-- **MySQL** 
-- SQL (CTEs, Joins, Aggregations, Window Functions)
-- Data Simulation using MySQL functions
+## Data Model
 
----
+The project uses three core tables:
 
-## Project Structure
+| Table | Purpose |
+|---|---|
+| `customers` | Customer identity, demographics, signup date, and city |
+| `accounts` | Customer account relationships, product type, opening date, and balance |
+| `transactions` | Transaction date, amount, type, and service description |
 
-| Phase | Description |
-|-------|-------------|
-| **1. Data Modeling & Simulation** | Created 3 core tables: `customers`, `accounts`, `transactions` using realistic Nigerian names, cities, account structures, and activity patterns. |
-| **2. Data Querying** | Wrote 12 key SQL queries to extract insights and segment customer/account behavior. |
-| **3. Reporting** | Documented insights with purpose-driven explanations for each query. |
+The generated dataset contains **200 customers** and **2,000 transactions**, with 1–3 accounts generated per customer.
 
----
+### Account Products
 
-## Key SQL Queries & Purposes
+The simulation currently uses:
 
-| No. | Query Title   | Purpose |
-|-----|-------------|---------|
-| 1 | **Total Spend per Customer** | Calculate total amount spent per customer across all accounts. |
-| 2 | **Salary Trend Analysis** | Identify salary credit trends across months. |
-| 3 | **Most Active Accounts (Count)** | Find accounts with the highest number of transactions. |
-| 4 | **Most Active Accounts (Volume)** | Rank accounts by total transaction volume. |
-| 5 | **Monthly Transaction Breakdown** | View total transaction count and volume per month. |
-| 6 | **Yearly Transaction Breakdown** | Track annual transaction growth or decline. |
-| 7 | **Top 20 High-Value Customers** | Rank customers based on credit inflow (e.g., deposits, salary). |
-| 8 | **Dormant Accounts** | Detect customers who’ve had no activity in the last 12 months. |
-| 9 | **Single Product Customers** | Identify customers holding only one account. |
-| 10 | **Most Used Transaction Services** | Discover the most frequent transaction descriptions (e.g., airtime, utility). |
-| 11 | **City-wise Performance** | Measure total volume and number of customers per city. |
-| 12 | **Engagement by Region** | Analyze activity vs dormancy spread across regions. |
+- Savings
+- Current
+- Loan
 
----
+## Segmentation Framework
 
-## Bonus Insight
+Customer segmentation is built across three independent dimensions.
 
-> **Highest Spender by City**  
-Uncovers the top spending customer in each city to help with targeted relationship management and regional performance boosts.
+### 1. Customer Value
 
----
+Based primarily on total credit inflows:
 
-## Key Learnings
+- **High Value** — top third
+- **Medium Value** — middle third
+- **Low Value** — bottom third
 
-- Built and queried a structured banking dataset from scratch.
-- Strengthened core SQL concepts like `JOIN`, `GROUP BY`, `DATE_TRUNC`, and `CASE WHEN`.
-- Gained deeper understanding of financial data behaviors — transaction types, account lifecycle, regional engagement.
+The value tiers are derived with `NTILE(3)` so that thresholds adapt to the simulated dataset rather than relying on arbitrary currency cutoffs.
 
----
+### 2. Engagement
 
+Based on transaction recency:
 
+| Segment | Definition |
+|---|---|
+| Active | Most recent transaction within 90 days |
+| Low Activity | Most recent transaction 91–365 days ago |
+| Dormant | No transaction or no transaction within the last 365 days |
 
+### 3. Product Relationship
+
+Based on the number of distinct account products:
+
+- **Single Product** — one distinct account type
+- **Multi Product** — more than one distinct account type
+
+These dimensions can then be combined to identify customer profiles such as:
+
+- High Value + Active + Multi Product
+- High Value + Dormant
+- Medium Value + Active + Single Product
+- Low Value + Active + Single Product
+
+## SQL Analysis
+
+The analysis is organized around business questions rather than SQL difficulty levels.
+
+### Customer Value
+
+- Total debit spend per customer
+- Top customers by total credit inflows
+- Highest spender by city
+
+### Engagement
+
+- Transaction activity by account
+- Customer dormancy
+- Monthly and yearly transaction trends
+- Service usage patterns
+
+### Product Relationship
+
+- Single-product customers
+- Multi-product customers
+- Account/product depth by customer
+
+### Transaction Behavior
+
+- Debit versus credit volume
+- Average transaction size
+- Salary credit trends
+- Most-used transaction services
+
+### Geography
+
+- Customer and transaction volume by city
+- Active and dormant account distribution by city
+- Highest-value customers by city
+
+## Data Quality
+
+The project includes dedicated validation checks for:
+
+- Customer, account, and transaction row counts
+- Null key fields
+- Orphaned accounts
+- Orphaned transactions
+- Duplicate account numbers
+- Invalid transaction types
+- Non-positive transaction amounts
+- Future-dated transactions
+- Negative account balances
+
+See:
+
+`04_data_quality_checks.sql`
+
+## Customer Feature Layer
+
+`05_customer_features.sql` creates a reusable customer-level analytical dataset containing:
+
+- Customer and city
+- Account count
+- Product count
+- Relationship balance
+- Total credit
+- Total debit
+- Transaction count
+- Average transaction value
+- Active months
+- Last transaction date
+- Credit/debit ratio
+- Salary transaction count and value
+
+This feature layer separates **data preparation** from **segmentation logic**.
+
+## Customer Segmentation
+
+`06_customer_segmentation.sql` applies the segmentation framework to the feature layer and produces one analytical row per customer with:
+
+```
+customer_id
+value_segment
+engagement_segment
+product_segment
+city
+total_credit
+total_debit
+transaction_count
+relationship_balance
+last_transaction_date
+```
+
+## Technical Skills Demonstrated
+
+- MySQL
+- Relational data modeling
+- Data quality validation
+- CTEs
+- Joins
+- Aggregations
+- Conditional logic
+- Date functions
+- Window functions
+- Customer-level feature engineering
+- Segmentation
+- Business-oriented SQL analysis
+
+## Repository Structure
+
+```
+Bank-Segmentation-Analysis/
+│
+├── README.md
+├── analysis_case_summary.md
+│
+├── 01_schema_setup_mysql.sql
+├── 02_data_generation_mysql.sql
+├── 03_bank_segmentation_mysql.sql
+├── 04_data_quality_checks.sql
+├── 05_customer_features.sql
+└── 06_customer_segmentation.sql
+```
+
+## Business Interpretation Boundaries
+
+Because the data is simulated and intentionally simplified, this project does **not** claim:
+
+- Actual Nigerian banking market behavior
+- Customer profitability or lifetime value
+- Credit risk or default probability
+- Causal relationships between customer characteristics and behavior
+- Real-world regional market performance
+
+The analysis demonstrates the **SQL and analytical workflow** used to derive customer insights from structured banking data.
+
+## Outcome
+
+The project demonstrates an end-to-end analyst workflow:
+
+> **Data → Validation → Feature Engineering → Segmentation → Insight**
+
+It is designed to showcase practical SQL, customer analytics, and business reasoning for data analyst and business analyst roles.
