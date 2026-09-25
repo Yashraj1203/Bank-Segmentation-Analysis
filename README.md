@@ -231,3 +231,7 @@ The project demonstrates an end-to-end analyst workflow:
 > **Data → Validation → Feature Engineering → Segmentation → Insight**
 
 It is designed to showcase practical SQL, customer analytics, and business reasoning for data analyst and business analyst roles.
+
+---
+## Author 
+Yashraj1203
